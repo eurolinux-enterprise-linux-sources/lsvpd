@@ -1,5 +1,5 @@
 Name:		lsvpd
-Version:	1.6.7
+Version:	1.6.10
 Release:	3%{?dist}
 Summary:	VPD/hardware inventory utilities for Linux
 
@@ -10,7 +10,8 @@ Source:		http://downloads.sourceforge.net/linux-diag/%{name}-%{version}.tar.gz
 Patch0:		lsvpd-1.6.4-sg3_utils-1.26.patch
 Patch1:		lsvpd-1.6.7-ids-lookup.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:	sg3_utils-devel libvpd-devel zlib-devel
+BuildRequires:	libvpd-devel >= 2.1.2
+BuildRequires:	sg3_utils-devel zlib-devel
 Requires(post): /usr/sbin/vpdupdate
 
 # By default, build without librtas because it does not yet exist in Fedora
@@ -41,6 +42,9 @@ on POWER PC based systems.
 %setup -q
 %patch0 -p1
 %patch1 -p0
+
+# corrects persmissions of tarball sources 0755 -> 0644
+find src -type f -perm 0755 | xargs chmod 0644
 
 %build
 %configure
@@ -73,6 +77,15 @@ on POWER PC based systems.
 %dir %{_sysconfdir}/lsvpd
 
 %changelog
+* Tue Jan 18 2011 Jiri Skala <jskala@redhat.com> 1.6.10-3
+- Resolves: #632737 - added min version of libvpd in buildrequires
+
+* Thu Jan 10 2011 Jiri Skala <jskala@redhat.com> 1.6.10-2
+- Resolves: #632737 - corrects permissions of source files
+
+* Thu Jan 06 2011 Jiri Skala <jskala@redhat.com> 1.6.10-1
+- Resolves: #632737 - [6.1 FEAT] Package Update: lsvpd-1.6.7+
+
 * Thu Feb 18 2010 Roman Rakus <rrakus@redhat.com> 1.6.7-3
 - Get a rid of define {name,version}
 

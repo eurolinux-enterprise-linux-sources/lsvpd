@@ -3,7 +3,7 @@
 
 Name:		%{name}
 Version:	%{version}
-Release:	1%{?dist}
+Release:	0%{?dist}
 Summary:	VPD/hardware inventory utilities for Linux
 
 Group:		Applications/System
@@ -11,7 +11,7 @@ License:	GPLv2+
 URL:		http://linux-diag.sf.net/Lsvpd.html
 Source:		http://downloads.sourceforge.net/linux-diag/%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:	sg3_utils-devel libvpd-devel zlib-devel
+BuildRequires:	zlib-devel
 
 # By default, build without librtas because it does not yet exist in Fedora
 %{!?_with_librtas: %{!?_without_librtas: %define _without_librtas --without-librtas }}
@@ -54,7 +54,7 @@ on POWER PC based systems.
 
 %files 
 %defattr(-,root,root,-)
-%doc COPYING INSTALL NEWS README TODO
+%doc COPYING INSTALL NEWS README TODO Doxyfile
 %{_sbindir}/lsvpd
 %{_sbindir}/lscfg
 %{_sbindir}/lsmcode

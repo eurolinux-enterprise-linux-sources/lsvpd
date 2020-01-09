@@ -233,7 +233,14 @@ void printVPD( Component* root )
 			stop = root->getDeviceSpecific( ).end( );
 			j != stop; ++j )
 		{
-			cout << "*" << (*j)->getAC( ) << " " << (*j)->getValue( ) << endl;
+
+			if (!(*j)->getAC().compare("SZ")) {
+				/* Accounts for AIX lsvpd output, which uses key
+				 * 'Size' rather than 'SZ'.  BZ 54756 */
+				cout << "*Size " << (*j)->getValue( ) << endl;
+			}
+			else
+				cout << "*" << (*j)->getAC( ) << " " << (*j)->getValue( ) << endl;
 		}
 
 		if( root->getMicroCodeImage( ) != "" )
@@ -270,6 +277,7 @@ void printVPD( Component* root )
 
 void printVPD( System* root )
 {
+	/* bpeters: Where did this come from?  Seems sketchy. */
 	cout << "*VC 5.0" << endl;
 
 	devType = root->getArch( );

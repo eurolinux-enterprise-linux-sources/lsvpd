@@ -25,6 +25,8 @@
 #include <config.h>
 #endif
 
+//#define DEBUGRTAS
+
 #include <devicetreecollector.hpp>
 
 #include <libvpd-2/logger.hpp>
@@ -213,6 +215,9 @@ namespace lsvpd
 		int ret = -1;
 
 #ifdef HAVE_LIBRTAS
+#ifdef DEBUGRTAS
+		printf("Collecting RTAS info: [%d] %s\n", __LINE__, __FILE__);
+#endif
 		ret = rtas_get_sysparm(code, RTAS_BUF_SIZE, buf);
 #endif
 
@@ -418,7 +423,8 @@ namespace lsvpd
 
 	bool DeviceTreeCollector::fillQuickVPD(Component * fillMe)
 	{
-		string val;
+		string val, path, path_tmp;
+		int done = 0, i;
 
 		/* Grab an easy AIX Name, higher quality than the base AIX */
 		val = getAttrValue( fillMe->deviceTreeNode.dataValue, "name" );
@@ -435,11 +441,30 @@ namespace lsvpd
 			fillMe->mModel.setValue( val, 21, __FILE__, __LINE__ );
 
 		/* Loc code */
-		val = getAttrValue( fillMe->deviceTreeNode.dataValue,
-					 "ibm,loc-code" );
+		/* bpeters: Many storage devices sit on a port of an adapter, and are not
+		 * themselves given loc-code files by firmware.  Thus, the general rule to
+		 * finding a loc-code is to start at the node the device sits at, then if
+		 * not found, back up and up until found.
+		 */
+		path = fillMe->deviceTreeNode.dataValue;
+		val = getAttrValue( path, "ibm,loc-code" );
 		if (val.length() > 0) {
 			fillMe->mPhysicalLocation.setValue( val, 90, __FILE__, __LINE__ );
 			return true;
+		}
+		else { /* walk up device path until loc-code found */
+			i = path.find_last_of("/", path.length() - 1);
+			while (i != -1) {
+				path_tmp = path;
+				path = path_tmp.substr(0, i);
+				val = getAttrValue( path, "ibm,loc-code" );
+				if (val.length() > 0) {
+					fillMe->mPhysicalLocation.setValue( val, 90, __FILE__, __LINE__ );
+					return true;
+				}
+
+				i = path.find_last_of("/", path.length() - 1);
+			}
 		}
 
 		return false;
@@ -863,7 +888,7 @@ ERROR:
 	 * 	step for these device types
 	 */
 	void DeviceTreeCollector::buildSCSILocCode(Component *fillMe,
-												vector<Component*> devs)
+											vector<Component*> devs)
 	{
 		Component *parent;
 		ostringstream val;
@@ -881,7 +906,10 @@ ERROR:
 				lun = fillMe->getDeviceSpecific("XL");
 				bus = fillMe->getDeviceSpecific("XB");
 				if (target != NULL && lun != NULL && bus != NULL) {
-					if (parent->mPhysicalLocation.dataValue != "")
+					if (fillMe->mPhysicalLocation.dataValue != "")
+						val << fillMe->mPhysicalLocation.dataValue;
+					else if
+					(parent->mPhysicalLocation.dataValue != "")
 						val << parent->mPhysicalLocation.dataValue;
 					else
 						val << getAttrValue( parent->deviceTreeNode.dataValue,
@@ -920,7 +948,13 @@ ERROR:
 
 #ifdef HAVE_LIBRTAS
 		char *rtasData = NULL;
+#ifdef DEBUGRTAS
+		printf("Collecting RTAS info: [%d] %s\n", __LINE__, __FILE__);
+#endif
 		bufSize = get_rtas_vpd("", &rtasData);
+#ifdef DEBUGRTAS
+		printf("Done. [%d] %s\n", __LINE__, __FILE__);
+#endif
 		if( bufSize < 0 )
 		{
 			Logger logger;
@@ -997,12 +1031,14 @@ ERROR:
 		for( i = sysdevs.begin( ), end = sysdevs.end( ); i != end; ++i ) {
 			devC = *i;
 
-			//Get Yl from ibm,loc-code if possible
-			if (fillQuickVPD( devC ))  {
-				//Otherwise, build one from parent
-				if (devC->devBus.dataValue == "scsi") {
-					buildSCSILocCode(devC, sysdevs);
-				}
+			//Deprecated behavior: Get Yl from ibm,loc-code if possible
+			/* bpeters: basic loc-code discovery now iterates up the device path,
+			 * so parent loc-codes are always going to be obtained if present
+			 */
+			fillQuickVPD( devC );
+				// Deprecated behavior: Otherwise, build one from parent
+			if (devC->devBus.dataValue == "scsi") {
+				buildSCSILocCode(devC, sysdevs);
 			}
 		}
 
@@ -1171,11 +1207,18 @@ ERROR:
 		sys->mLocationCode.setValue( os.str( ), 100, __FILE__, __LINE__ );
 
 #ifdef HAVE_LIBRTAS
+#ifdef DEBUGRTAS
+		printf("Collecting RTAS info: [%d] %s\n", __LINE__, __FILE__);
+#endif
 		size = get_rtas_vpd( os.str( ), &rtasVPD );
 		if( rtasVPD != NULL && size > 0 )
 		{
 			parseSysRtas( rtasVPD, sys );
 		}
+#ifdef DEBUGRTAS
+		printf("Done. [%d] %s\n", __LINE__, __FILE__);
+#endif
+
 #endif
 
 	}

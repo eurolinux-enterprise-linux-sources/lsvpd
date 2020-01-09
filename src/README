@@ -15,7 +15,7 @@ Compilation Dependencies
 	SCSI Utils Library (libsgutils.a) found in sg[3]_utils-dev 
 	 or built from source.  Some versions of the binary package will not 
 	 install sg_cmds.h.  In that case, you must build from source.
-	   http://packages.qa.debian.org/s/sg3-utils.html
+	   http://sg.danny.cz/sg/sg3_utils.html
 	 
 	sqlite2* Base:
 	  http://rpmfind.net/linux/rpm2html/search.php?query=sqlite2

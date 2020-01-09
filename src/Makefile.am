@@ -83,4 +83,5 @@ install-exec-hook:
 
 EXTRA_DIST = docs/lsvpd.8 docs/lscfg.8 docs/lsvio.8 docs/lsmcode.8 \
 		docs/vpdupdate.8 docs/Makefile docs/install.html \
-		bootstrap.sh scsi_templates.conf cpu_mod_conv.conf
+		bootstrap.sh scsi_templates.conf cpu_mod_conv.conf \
+		Doxyfile

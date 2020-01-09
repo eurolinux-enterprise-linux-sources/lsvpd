@@ -163,27 +163,39 @@ void printVPD( Component* root )
 		}
 	}
 
+	string fwVersion = "";
 	if( root->getFirmwareVersion( ) != "" )
+		fwVersion = root->getFirmwareVersion( );
+	else if( root->getFirmwareLevel() != "" )
+		fwVersion = root->getFirmwareLevel( );
+	if( fwVersion != "" )
 	{
-		vector<DataItem*>::const_iterator j, stop;
-		for( j = root->getAIXNames( ).begin( ),
-			stop = root->getAIXNames( ).end( ); j != stop; ++j )
+		const vector<DataItem*> aixNames = root->getAIXNames( );
+		vector<DataItem*>::const_iterator j, stop = aixNames.end( );
+		bool report = true;
+		if (device != "")
 		{
-			cout << (*j)->getValue( ) << " ";
+			/* Report only the specified device. */
+			report = false;
+			for( j = aixNames.begin( ); j != stop; j++ )
+			{
+				if( (*j)->getValue( ) == device )
+				{
+					report = true;
+					break;
+				}
+			}
 		}
-		cout << "!" << root->getModel( );
-		cout << "." << root->getFirmwareVersion( ) << endl;
-	}
-	else if( root->getFirmwareLevel( ) != "" )
-	{
-		vector<DataItem*>::const_iterator j, stop;
-		for( j = root->getAIXNames( ).begin( ),
-			stop = root->getAIXNames( ).end( ); j != stop; ++j )
+		if (report)
 		{
-			cout << (*j)->getValue( ) << " ";
+			for( j = aixNames.begin( ); j != stop; j++ )
+			{
+				cout << (*j)->getValue( ) << " ";
+			}
+
+			cout << "!" << root->getModel( );
+			cout << "." << fwVersion << endl;
 		}
-		cout << "!" << root->getModel( );
-		cout << "." << root->getFirmwareLevel( ) << endl;
 	}
 
 	const vector<Component*> children = root->getLeaves( );
@@ -210,9 +222,10 @@ void printVPD( System* root )
 		cout << "-----------------------------" << endl;
 	}
 
-	printSystem( root->getLeaves( ) );
+	if( device == "" )
+		printSystem( root->getLeaves( ) );
 
-	if( !all )
+	if( !all && device == "" )
 		return;
 
 	const vector<Component*> children = root->getLeaves( );
@@ -276,6 +289,12 @@ int main( int argc, char** argv )
 				break;
 
 			case 'd':
+				if( device != "" )
+				{
+					cout << "Please specify at most one device."
+						<< endl;
+					return 1;
+				}
 				device = optarg;
 				break;
 
@@ -294,10 +313,18 @@ int main( int argc, char** argv )
 				break;
 
 			case 'h':
-			default:
 				printUsage( );
 				return 0;
+			default:
+				printUsage( );
+				return 1;
 		}
+	}
+
+	if( all && device != "" )
+	{
+		cout << "-A option conflicts with -d." << endl;
+		return 1;
 	}
 
 	if( path != "" )
