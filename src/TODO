@@ -1,0 +1,12 @@
+There are a couple requests we have seen that sounded useful to us.  These
+are a few of the things we have planned for lsvpd.
+
+Add a way to see if a device has an LED and store this information somewhere
+in each device.
+
+Create SCSI_fill templates for SATA devices
+
+Find a less intrusive way of being notified of hotplugged devices. 
+
+Hardware information that is stored in /proc/device-tree to be removed from
+/proc and merged into /sys...
