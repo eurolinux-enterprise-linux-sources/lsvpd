@@ -3,7 +3,7 @@
 
 Name:		%{name}
 Version:	%{version}
-Release:	1%{?dist}
+Release:	3%{?dist}
 Summary:	VPD/hardware inventory utilities for Linux
 
 Group:		Applications/System
@@ -14,6 +14,7 @@ Patch1:		lsvpd-1.6.7-ids-lookup.patch
 # invscout command is shipped in IBMinvscout package, which
 # is not yet exist in Fedora. Hence exclude building invscout.
 Patch2:		lsvpd-1.7.1-exclude_invscout.patch
+Patch3:		lsvpd-fix-terminology.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:	libvpd-devel >= 2.2.1
 BuildRequires:	sg3_utils-devel zlib-devel automake libtool
@@ -37,6 +38,7 @@ on POWER PC based systems.
 %setup -q
 %patch1 -p0 -b .lookup
 %patch2 -p1 -b .exclude_invscout
+%patch3 -p1 -b .fix_term
 
 %build
 ./bootstrap.sh
@@ -70,6 +72,12 @@ on POWER PC based systems.
 %dir %{_sysconfdir}/lsvpd
 
 %changelog
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.7.1-3
+- Mass rebuild 2013-12-27
+
+* Thu Nov 28 2013 Filip Kocina <fkocina@redhat.com> 1.7.1-2
+- Resolves: #1030237 - fix FW expiry display terminology
+
 * Tue May 21 2013 Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
 - Update to latest upstream 1.7.1
 - Exclude invscout command from lsvpd package
